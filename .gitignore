@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables (SECRETS!)
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+seen_notifications.json
+last_id.txt
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
