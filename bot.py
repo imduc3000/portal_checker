@@ -1,5 +1,9 @@
 from telegram import Update, InlineKeyboardMarkup, ReplyKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -51,7 +55,13 @@ async def website(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
 
 if __name__ == '__main__':
-    app = ApplicationBuilder().token("8300684157:AAGDNT0wtUDsAXcWeGK1Voerf_Hv3FpbCAk").build()
+    # Load token từ .env file (KHÔNG hardcode!)
+    BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    
+    if not BOT_TOKEN:
+        raise ValueError("❌ TELEGRAM_BOT_TOKEN not found in .env file!")
+    
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
 
