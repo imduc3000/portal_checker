@@ -56,7 +56,6 @@ def save_seen_data(data: Dict) -> None:
     except IOError as e:
         print(f"IO Error when writing in to JSON file: {e}")
 
-
     except Exception as e:
         print(f"Error when save new data to Json file: {e}")
 
@@ -69,29 +68,24 @@ def maintain_rolling_window(seen_ids: Set[str], new_ids: List[str]) -> Set[str]:
     """
     Duy trì rolling window: thêm IDs mới, xóa IDs cũ nếu quá limit
     
-    TODO 5: Implement logic:
-    1. Thêm tất cả new_ids vào seen_ids
-       Hint: seen_ids.update(new_ids)
-    2. Check nếu len(seen_ids) > WINDOW_SIZE:
-       a. Convert set thành list
-       b. Sort list theo thứ tự giảm dần (ID lớn = mới)
-          Hint: sorted(seen_ids, key=lambda x: int(x), reverse=True)
-          Note: Nếu ID không phải số thuần, dùng try/except
-       c. Chỉ giữ lại WINDOW_SIZE phần tử đầu
-       d. Convert lại thành set
-    3. Return seen_ids đã updated
-    
-    Tips:
-    - set.update() thêm nhiều phần tử 1 lúc
-    - sorted() return list mới, không modify original
-    - Nếu ID format phức tạp, có thể dùng: 
-      key=lambda x: int(x) if x.isdigit() else 0
-    
-    Challenge: Nếu muốn advanced hơn, maintain window bằng 
-    timestamp thay vì sort by ID
+    Args:
+        seen_ids: Set of IDs đã thấy
+        new_ids: List of IDs mới cần thêm
+        
+    Returns:
+        Set of IDs sau khi maintain (không modify input)
     """
-    # TODO: Implement ở đây
-    pass
+
+    update_ids = seen_ids.copy()
+    update_ids.update(new_ids)
+    
+    if len(update_ids) > WINDOW_SIZE:
+        sorted_ids = sorted(update_ids, key=lambda x : int(x), reverse=True)
+        sorted_ids = sorted_ids[:WINDOW_SIZE]
+        return set(sorted_ids)
+
+    return update_ids
+    
 
 
 # ============================================================
@@ -190,12 +184,17 @@ def reset_seen_data() -> None:
 # ============================================================
 
 if __name__ == "__main__":
-    # Test 1: Load và Save
-    print("Test 1: Load/Save")
-    data = load_seen_data()
-    print(f"Loaded: {data}")
-    save_seen_data(data)
-    print("Saved successfully!")
+    # Case 1: Ít hơn WINDOW_SIZE (5)
+    seen = set(['100', '99', '98'])  # 3 IDs
+    new = ['101']                     # Thêm 1
+    result = maintain_rolling_window(seen, new)
+    print(result)  # ❌ None! (Expected: set(['100','99','98','101']))
+
+    # Case 2: Vượt WINDOW_SIZE
+    seen = set(['100', '99', '98', '97', '96'])  # 5 IDs
+    new = ['101']                                 # Thêm 1 → total 6
+    result = maintain_rolling_window(seen, new)
+    print(result)  # ✅ OK: set(['101','100','99','98','97'])
     
     # Test 2: Rolling Window
     # print("\nTest 2: Rolling Window")
