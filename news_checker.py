@@ -38,7 +38,6 @@ def load_seen_data() -> Dict:
         return default_data
 
 
-
 def save_seen_data(data: Dict) -> None:
     save_data = {
         'last_check_time': datetime.now().isoformat(timespec='seconds'),
@@ -59,10 +58,6 @@ def save_seen_data(data: Dict) -> None:
     except Exception as e:
         print(f"Error when save new data to Json file: {e}")
 
-
-# ============================================================
-# PART 2: ROLLING WINDOW LOGIC - Maintain danh sách seen IDs
-# ============================================================
 
 def maintain_rolling_window(seen_ids: Set[str], new_ids: List[str]) -> Set[str]:
     """
@@ -87,96 +82,88 @@ def maintain_rolling_window(seen_ids: Set[str], new_ids: List[str]) -> Set[str]:
     return update_ids
     
 
+def check_for_update() -> List[Dict] | None: 
+    load_dotenv()
 
-# ============================================================
-# PART 3: MAIN LOGIC - Check for updates
-# ============================================================
+    header = os.getenv("HEADERS")
+    login_url = os.getenv("LOGIN_URL")
+    api_url = os.getenv("API_URL")
+    username = os.getenv("PORTAL_USERNAME")
+    password = os.getenv("PORTAL_PASSWORD")
 
-def check_for_update() -> List[Dict] | None:
-    """
-    Main function: Login portal, fetch notifications, check for new ones
-    
-    TODO 6: Load environment và seen data
-    1. Gọi load_dotenv()
-    2. Load các env variables (header, login_url, api_url, username, password)
-    3. Gọi load_seen_data() để lấy seen_ids
-    
-    TODO 7: Setup session và login
-    1. Tạo requests.Session()
-    2. Update session.headers với User-Agent
-    3. POST login với payload {'user': ..., 'pass': ...}
-    4. Check response và handle authentication URL nếu có
-    5. Dùng try/except để catch login errors
-    
-    TODO 8: Fetch notifications từ API
-    1. GET request đến api_url với timeout=10
-    2. Parse JSON response
-    3. Check nếu api_data empty → return None
-    
-    TODO 9: Check for new notifications
-    1. Tạo list rỗng: new_notifications = []
-    2. Tạo list rỗng: all_current_ids = []
-    3. Loop qua từng item trong api_data:
-       a. Lấy item_id = str(item.get('id'))
-       b. Thêm item_id vào all_current_ids
-       c. Check: if item_id not in seen_ids:
-          - Đây là tin MỚI!
-          - Append vào new_notifications dict với keys:
-            'id', 'title', 'summary', 'link', 'date'
-    
-    TODO 10: Update rolling window và save
-    1. Gọi maintain_rolling_window(seen_ids, all_current_ids)
-    2. Update metadata: total_checked += 1
-    3. Gọi save_seen_data() để lưu
-    
-    TODO 11: Return results
-    1. Nếu có new_notifications:
-       - Print số lượng tin mới
-       - Sort notifications theo ID (mới nhất trước)
-       - Return list
-    2. Nếu không có tin mới:
-       - Print message
-       - Return None
-    
-    Tips:
-    - Dùng multiple try/except blocks cho từng phần
-    - Login error và API error nên handle riêng
-    - response.raise_for_status() để check HTTP errors
-    """
-    # TODO: Implement ở đây
-    pass
+    data = load_seen_data()
+    seen_ids = data['seen_ids']
 
+    session = requests.Session()
+    session.headers.update ({
+        "User-Agent": header
+    })
 
-# ============================================================
-# PART 4: BONUS - Helper functions (Optional)
-# ============================================================
+    payload = {
+        'user': username,
+        'pass': password
+    }
 
-def get_stats() -> Dict:
-    """
-    BONUS TODO: Lấy thống kê về seen data (để debug)
-    
-    1. Load seen_data
-    2. Return dict với:
-       - total_seen_ids: len(seen_ids)
-       - window_size: từ metadata
-       - last_check: từ last_check_time
-       - total_checks: từ metadata
-    
-    Dùng để debug: print(get_stats())
-    """
-    # TODO: Implement nếu muốn có debug info
-    pass
+    try:
+        response = session.post(login_url, data=payload)
+        response.raise_for_status()
 
+        response_data = response.json() #return result & url as dict. 
 
-def reset_seen_data() -> None:
-    """
-    BONUS TODO: Reset file seen_notifications.json
-    
-    Dùng khi muốn test lại từ đầu
-    Xóa file hoặc ghi đè với empty data
-    """
-    # TODO: Implement nếu cần reset
-    pass
+        if "url" in response_data:
+            print("Login Successfully!")
+            session.get(response_data["url"]) # Url contains token to login.
+            
+        else:
+            print("Login Failed!")
+            return None
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Login Error: {e}")
+        return None
+       
+    try:
+        api_response = session.get(api_url, timeout=10)
+        api_response.raise_for_status()
+
+        api_data = api_response.json()
+        new_notifications = []
+        all_current_ids = []
+
+        for item in api_data:
+            item_id = str(item.get('id'))
+            all_current_ids.append(item_id)
+
+            if item_id not in seen_ids:
+                new_notifications.append({
+                    'id': item_id,
+                    'title': item['tieuDe'],
+                    'summary': item['tomTatNoiDung'],
+                    'link': item['link'],
+                    'date': item['ngayDang']
+                })
+
+        seen_ids = maintain_rolling_window(seen_ids=seen_ids, new_ids=all_current_ids)
+        data['metadata']['total_checked'] += 1
+        data['seen_ids'] = seen_ids
+
+        save_seen_data(data)
+
+        if new_notifications:
+            print(f"Found '{len(new_notifications)}' new notifications!")
+            new_notifications.sort(key=lambda k : int(k['id']) , reverse=True)
+            return new_notifications
+        else:
+            print(f"Found 0 new notifications!")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"API Error: {e}")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Data not in JSON format: {e}")
+        return None
+
 
 
 # ============================================================
@@ -184,17 +171,7 @@ def reset_seen_data() -> None:
 # ============================================================
 
 if __name__ == "__main__":
-    # Case 1: Ít hơn WINDOW_SIZE (5)
-    seen = set(['100', '99', '98'])  # 3 IDs
-    new = ['101']                     # Thêm 1
-    result = maintain_rolling_window(seen, new)
-    print(result)  # ❌ None! (Expected: set(['100','99','98','101']))
 
-    # Case 2: Vượt WINDOW_SIZE
-    seen = set(['100', '99', '98', '97', '96'])  # 5 IDs
-    new = ['101']                                 # Thêm 1 → total 6
-    result = maintain_rolling_window(seen, new)
-    print(result)  # ✅ OK: set(['101','100','99','98','97'])
     
     # Test 2: Rolling Window
     # print("\nTest 2: Rolling Window")
@@ -204,9 +181,9 @@ if __name__ == "__main__":
     # print(f"Result: {result}")
     
     # Test 3: Full check
-    # print("\nTest 3: Full Check")
-    # result = check_for_update()
-    # print(f"New notifications: {result}")
+    print("\nTest 3: Full Check")
+    result = check_for_update()
+    print(f"New notifications: {result}")
     
 
                 
