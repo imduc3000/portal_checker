@@ -1,4 +1,4 @@
-# 🔔 TDTU Portal Notification Checker
+# TDTU Portal Notification Checker
 
 Automated notification system for TDTU student portal - checks for new announcements every 30 minutes and sends to Telegram.
 
@@ -8,18 +8,18 @@ Automated notification system for TDTU student portal - checks for new announcem
 
 ---
 
-## ✨ Features
+## Features
 
-- 🤖 **Automated Checking**: Runs every 30 minutes via GitHub Actions
-- 📱 **Telegram Notifications**: Instant alerts to your phone
-- 🔄 **State Persistence**: Git auto-commit prevents duplicate notifications
-- 👥 **Group Support**: Share with friends via Telegram groups
-- 🚀 **Serverless**: 100% free, runs on GitHub infrastructure
-- 🔒 **Secure**: Credentials stored in GitHub Secrets
+- **Automated Checking**: Runs every 30 minutes via GitHub Actions
+- **Telegram Notifications**: Instant alerts to your phone
+- **State Persistence**: Git auto-commit prevents duplicate notifications
+- **Group Support**: Share with friends via Telegram groups
+- **Serverless**: 100% free, runs on GitHub infrastructure
+- **Secure**: Credentials stored in GitHub Secrets
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -64,7 +64,7 @@ Automated notification system for TDTU student portal - checks for new announcem
 
 ---
 
-## 📖 Detailed Guides
+## Detailed Guides
 
 - **[Telegram Bot Setup](TELEGRAM_SETUP.md)** - Create bot, get credentials & implementation guide
 - **[Group Chat Setup](GROUP_SETUP.md)** - Add bot to group for team notifications
@@ -72,7 +72,7 @@ Automated notification system for TDTU student portal - checks for new announcem
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 portal_checker2/
@@ -88,7 +88,7 @@ portal_checker2/
 
 ---
 
-## 🔧 How It Works
+## How It Works
 
 ```mermaid
 graph LR
@@ -108,7 +108,7 @@ graph LR
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Schedule (Edit `.github/workflows/checker.yml`)
 
@@ -124,14 +124,13 @@ Use [crontab.guru](https://crontab.guru) to generate schedules.
 ### Notification Format
 
 Messages include:
-- 📌 Title
-- 📄 Summary (from API)
-- 📅 Date
-- 🔗 Direct link to announcement
+- Title
+- Summary (from API)
+- Direct link to announcement
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Workflow fails with "Permission denied"
 - Settings → Actions → General → Enable "Read and write permissions"
@@ -150,7 +149,7 @@ See detailed [Troubleshooting Guide](GITHUB_ACTIONS_SETUP.md#troubleshooting)
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 **View Logs:**
 - Actions tab → Click workflow run → Expand steps
@@ -163,22 +162,22 @@ See detailed [Troubleshooting Guide](GITHUB_ACTIONS_SETUP.md#troubleshooting)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Feel free to:
-- 🐛 Report bugs
-- 💡 Suggest features
-- 🔧 Submit pull requests
+- Report bugs
+- Suggest features
+- Submit pull requests
 
 ---
 
-## 📄 License
+## License
 
 MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with:
 - [Python Requests](https://requests.readthedocs.io/)
@@ -187,9 +186,9 @@ Built with:
 
 ---
 
-## 📧 Contact
+## Contact
 
-Issues? Questions? Open an issue or reach out via Telegram!
+Issues? Questions? Open an issue or reach out via regret1505@gmail.com!
 
 ---
 
