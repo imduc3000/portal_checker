@@ -22,7 +22,6 @@ env/
 .DS_Store
 
 # Project specific
-seen_notifications.json
 last_id.txt
 *.log
 
