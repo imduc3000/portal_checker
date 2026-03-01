@@ -1,0 +1,50 @@
+name: TDTU Portal Checker
+
+on:
+  schedule:
+    # Chạy mỗi 30 phút
+    - cron: '*/30 * * * *'
+  
+  workflow_dispatch:  # Cho phép chạy manual từ GitHub UI
+
+jobs:
+  check-notifications:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dotenv beautifulsoup4
+      
+      - name: 🔍 Check for new notifications
+        env:
+          PORTAL_USERNAME: ${{ secrets.PORTAL_USERNAME }}
+          PORTAL_PASSWORD: ${{ secrets.PORTAL_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HEADERS: ${{ secrets.HEADERS }}
+          LOGIN_URL: ${{ secrets.LOGIN_URL }}
+          API_URL: ${{ secrets.API_URL }}
+        run: python news_checker.py
+      
+      - name: 💾 Commit updated seen_notifications.json
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add seen_notifications.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Update seen notifications [skip ci]"
+      
+      - name: 📤 Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

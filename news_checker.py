@@ -4,6 +4,7 @@ import json
 from dotenv import load_dotenv
 from datetime import datetime
 from typing import List, Dict, Set, Optional
+from bs4 import BeautifulSoup
 
 WINDOW_SIZE = 50  
 SEEN_FILE = 'seen_notifications.json'  
@@ -36,7 +37,6 @@ def load_seen_data() -> Dict:
     except Exception as e:
         print(f"Load data Error: {e}")
         return default_data
-
 
 def save_seen_data(data: Dict) -> None:
     save_data = {
@@ -165,26 +165,94 @@ def check_for_update() -> List[Dict] | None:
         return None
 
 
+# ============================================================
+# PHASE 2: EXTRACTION
+# ============================================================
+# PHASE 2: TELEGRAM NOTIFICATION
+# ============================================================
+
+def send_telegram_notification(notifications: List[Dict]) -> bool:
+    """
+    Gửi thông báo qua Telegram Bot.
+    
+    Args:
+        notifications: List of notification dicts từ check_for_update()
+            [{'id': '...', 'title': '...', 'summary': '...', 'link': '...', 'date': '...'}]
+        
+    Returns:
+        True nếu gửi thành công, False nếu có lỗi
+    
+    Xem hướng dẫn chi tiết: TELEGRAM_IMPLEMENTATION.md
+    """
+    
+    bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+
+    message = f"🔔 Có {len(notifications)} thông báo mới!\n\n"
+    for notification in notifications:
+        title = notification['title']
+        summary = notification['summary']
+        link = notification['link']
+        date = notification['date']
+
+        message += f"📌 Tít Le: {title}\n\n"
+        message += f"📄 Tóm tắt: {summary}\n\n"
+        message += f"🔗 Link: {link}\n\n"
+    
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        'chat_id': chat_id,
+        'text': message
+    }
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        response.raise_for_status()  
+    
+        print("Telegram notification sent!")
+        return True
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Telegram API Error: {e}")
+        return False
+
+
 
 # ============================================================
-# TESTING - Uncomment để test từng function riêng
+# TESTING
 # ============================================================
 
 if __name__ == "__main__":
-
+    print("=" * 50)
+    print("🚀 TDTU Portal Notification Checker")
+    print("=" * 50)
     
-    # Test 2: Rolling Window
-    # print("\nTest 2: Rolling Window")
-    # seen = set(['100', '99', '98'])
-    # new = ['101', '102']
-    # result = maintain_rolling_window(seen, new)
-    # print(f"Result: {result}")
+    # Check for new notifications
+    notifications = check_for_update()
     
-    # Test 3: Full check
-    print("\nTest 3: Full Check")
-    result = check_for_update()
-    print(f"New notifications: {result}")
+    if notifications:
+        print(f"\n📋 Found {len(notifications)} new notification(s)!")
+        print("-" * 50)
+        
+        # Print notifications
+        for notif in notifications:
+            print(f"\n🆔 ID: {notif['id']}")
+            print(f"📌 Title: {notif['title']}")
+            print(f"📄 Summary: {notif['summary'][:100]}...")
+            print(f"📅 Date: {notif['date']}")
+            print(f"🔗 Link: {notif['link']}")
+        
+        # Send to Telegram
+        print("\n" + "=" * 50)
+        print("📱 Sending to Telegram...")
+        print("=" * 50)
+        
+        success = send_telegram_notification(notifications)
+        
+        if success:
+            print("\n✅ Telegram notification sent!")
+        else:
+            print("\n❌ Failed to send Telegram notification")
+    else:
+        print("\n✅ All caught up! No new notifications.")
     
-
-                
-    
+    print("\n" + "=" * 50)
