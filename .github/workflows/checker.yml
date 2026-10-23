@@ -7,6 +7,13 @@ on:
   
   workflow_dispatch:  # Cho phép chạy manual từ GitHub UI
 
+permissions:
+  contents: write
+
+concurrency:
+  group: portal-checker-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   check-notifications:
     runs-on: ubuntu-latest
@@ -23,14 +30,18 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests python-dotenv beautifulsoup4
+          pip install -r requirements.txt
       
       - name: 🔍 Check for new notifications
+        id: checker
+        continue-on-error: true
         env:
           PORTAL_USERNAME: ${{ secrets.PORTAL_USERNAME }}
           PORTAL_PASSWORD: ${{ secrets.PORTAL_PASSWORD }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ZALO_BOT_TOKEN: ${{ secrets.ZALO_BOT_TOKEN }}
+          ZALO_CHAT_ID: ${{ secrets.ZALO_CHAT_ID }}
           HEADERS: ${{ secrets.HEADERS }}
           LOGIN_URL: ${{ secrets.LOGIN_URL }}
           API_URL: ${{ secrets.API_URL }}
@@ -44,7 +55,8 @@ jobs:
           git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Update seen notifications [skip ci]"
       
       - name: 📤 Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+        run: git push
+
+      - name: Report delivery failures
+        if: steps.checker.outcome == 'failure'
+        run: exit 1
