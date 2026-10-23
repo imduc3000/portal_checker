@@ -5,7 +5,13 @@ on:
     # Chạy mỗi 30 phút
     - cron: '*/30 * * * *'
   
-  workflow_dispatch:  # Cho phép chạy manual từ GitHub UI
+  workflow_dispatch:
+    inputs:
+      send_zalo_test:
+        description: 'Gửi 1 tin kiểm tra vào nhóm Zalo'
+        type: boolean
+        default: false
+        required: false
 
 permissions:
   contents: write
@@ -32,6 +38,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Send one Zalo test message
+        id: zalo_test
+        if: github.event_name == 'workflow_dispatch' && inputs.send_zalo_test
+        continue-on-error: true
+        env:
+          ZALO_BOT_TOKEN: ${{ secrets.ZALO_BOT_TOKEN }}
+          ZALO_CHAT_ID: ${{ secrets.ZALO_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import os
+          from delivery import send
+          token = os.environ.get('ZALO_BOT_TOKEN', '').strip()
+          chat_id = os.environ.get('ZALO_CHAT_ID', '').strip()
+          if not token or not chat_id:
+              raise SystemExit('Missing Zalo secrets')
+          text = '✅ Portal Checker: kiểm tra gửi Zalo từ GitHub Actions thành công. Telegram vẫn được giữ làm kênh song song. Đây là tin thử, không phải thông báo từ trường.'
+          if not send('zalo', (token, chat_id), text):
+              raise SystemExit('Zalo test failed; check token, permissions or quota')
+          print('Zalo accepted the test message.')
+          PY
+
       - name: 🔍 Check for new notifications
         id: checker
         continue-on-error: true
@@ -58,5 +85,5 @@ jobs:
         run: git push
 
       - name: Report delivery failures
-        if: steps.checker.outcome == 'failure'
+        if: steps.checker.outcome == 'failure' || steps.zalo_test.outcome == 'failure'
         run: exit 1
