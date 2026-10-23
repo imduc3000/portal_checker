@@ -1,6 +1,8 @@
 # TDTU Portal Notification Checker
 
-Automated notification system for TDTU student portal - checks for new announcements every 30 minutes and sends to Telegram.
+Automated notification system for TDTU student portal - checks every 30 minutes and sends to Telegram, with optional Zalo group delivery in parallel.
+
+**Zalo setup:** [Add Zalo while keeping Telegram](ZALO_SETUP.md). Each channel records confirmed deliveries independently; failed sends are retried while the announcement remains available from the Portal API.
 
 [![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
