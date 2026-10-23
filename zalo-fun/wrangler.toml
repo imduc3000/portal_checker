@@ -1,0 +1,20 @@
+name = "portal-checker-fun"
+main = "worker.mjs"
+compatibility_date = "2026-10-23"
+workers_dev = true
+
+[vars]
+ZALO_CHAT_ID = "zgr-90394514db7b32256b6a"
+BOT_ID = "1212794478886581973"
+STICKER_ID = "0e078a2fb66a5f34067b"
+
+[[durable_objects.bindings]]
+name = "GROUP_BOT"
+class_name = "GroupBot"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GroupBot"]
+
+[observability]
+enabled = false
